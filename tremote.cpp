@@ -24,6 +24,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QUdpSocket>
 #include <QWebSocket>
 #include <QCloseEvent>
+#include <QSettings>
 
 #include "tremote.h"
 #include "ui_tremote.h"
@@ -51,6 +52,11 @@ TRemote::TRemote(QWidget *parent)
 
   sNormalStyle = ui->powerPercentageEdit->styleSheet();
   sErrorStyle  = "QLineEdit { background: rgb(255, 0, 0); selection-background-color: rgb(255, 255, 0); }";
+
+  QSettings settings;
+  restoreGeometry(settings.value("mainWindowGeometry").toByteArray());
+  // create docks, toolbars, etc...
+  restoreState(settings.value("mainWindowState").toByteArray());
 
   QString sBaseDir    = QDir::homePath();
   if(!sBaseDir.endsWith(QString("/"))) sBaseDir+= QString("/");
@@ -140,6 +146,9 @@ TRemote::closeEvent(QCloseEvent *event) {
   Q_UNUSED(sFunctionName)
   QString sMessage;
   Q_UNUSED(sMessage)
+  QSettings settings;
+  settings.setValue("mainWindowGeometry", saveGeometry());
+  settings.setValue("mainWindowState", saveState());
 }
 
 
@@ -247,6 +256,7 @@ TRemote::onPanelServerConnected() {
           this, SLOT(onTextMessageReceived(QString)));
   connect(pPanelServerSocket, SIGNAL(binaryMessageReceived(QByteArray)),
           this, SLOT(onBinaryMessageReceived(QByteArray)));
+  ui->statusBar->showMessage(tr("Connesso al Panel Server: %1").arg(pPanelServerSocket->peerAddress().toString()));
   // Ask for the current status
   QString sMessage;
   sMessage = QString("<getStatus>1</getStatus>");
@@ -271,6 +281,8 @@ TRemote::onPanelServerDisconnected() {
   if(pPanelServerSocket)
       pPanelServerSocket->deleteLater();
   pPanelServerSocket =Q_NULLPTR;
+  ui->groupBox->setDisabled(true);
+  startServerDiscovery();
 }
 
 
