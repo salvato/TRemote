@@ -306,6 +306,8 @@ TRemote::onPanelServerSocketError(QAbstractSocket::SocketError error) {
   if(pPanelServerSocket)
     pPanelServerSocket->deleteLater();
   pPanelServerSocket = Q_NULLPTR;
+  ui->groupBox->setDisabled(true);
+  startServerDiscovery();
 }
 
 
