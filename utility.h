@@ -27,7 +27,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <QDebug>
 
 #define LOG_MESG
-//#define LOG_VERBOSE
+#define LOG_VERBOSE
 
 QString XML_Parse(QString input_string, QString token);
 void logMessage(QFile *logFile, QString sFunctionName, QString sMessage);
