@@ -74,6 +74,12 @@ private slots:
 
   void on_applyButton_clicked();
 
+  void on_serverAddressEdit_returnPressed();
+
+  void on_autoSearchButton_clicked();
+
+  void on_manualButton_clicked();
+
 private:
   Ui::TRemote *ui;
   QString     sNormalStyle;

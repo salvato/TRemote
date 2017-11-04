@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>400</width>
-    <height>300</height>
+    <width>362</width>
+    <height>328</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -18,8 +18,8 @@
     <property name="geometry">
      <rect>
       <x>50</x>
-      <y>60</y>
-      <width>251</width>
+      <y>10</y>
+      <width>261</width>
       <height>121</height>
      </rect>
     </property>
@@ -29,10 +29,10 @@
     <widget class="QLineEdit" name="powerPercentageEdit">
      <property name="geometry">
       <rect>
-       <x>70</x>
+       <x>80</x>
        <y>40</y>
        <width>61</width>
-       <height>23</height>
+       <height>29</height>
       </rect>
      </property>
      <property name="toolTip">
@@ -48,13 +48,13 @@
       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
      </property>
     </widget>
-    <widget class="QLabel" name="label">
+    <widget class="QLabel" name="label_Set">
      <property name="geometry">
       <rect>
        <x>10</x>
        <y>40</y>
-       <width>31</width>
-       <height>23</height>
+       <width>60</width>
+       <height>29</height>
       </rect>
      </property>
      <property name="text">
@@ -64,11 +64,14 @@
     <widget class="QPushButton" name="applyButton">
      <property name="geometry">
       <rect>
-       <x>150</x>
+       <x>160</x>
        <y>40</y>
-       <width>75</width>
-       <height>23</height>
+       <width>91</width>
+       <height>29</height>
       </rect>
+     </property>
+     <property name="toolTip">
+      <string extracomment="Apply Changes"/>
      </property>
      <property name="text">
       <string>Apply</string>
@@ -77,10 +80,10 @@
     <widget class="QLineEdit" name="powerPercentageReadEdit">
      <property name="geometry">
       <rect>
-       <x>70</x>
+       <x>80</x>
        <y>80</y>
        <width>61</width>
-       <height>23</height>
+       <height>29</height>
       </rect>
      </property>
      <property name="alignment">
@@ -90,17 +93,94 @@
       <bool>true</bool>
      </property>
     </widget>
-    <widget class="QLabel" name="label_2">
+    <widget class="QLabel" name="label_Read">
      <property name="geometry">
       <rect>
        <x>10</x>
        <y>80</y>
-       <width>51</width>
-       <height>23</height>
+       <width>60</width>
+       <height>29</height>
       </rect>
      </property>
      <property name="text">
       <string>Read</string>
+     </property>
+    </widget>
+   </widget>
+   <widget class="QGroupBox" name="connectionGroupBox">
+    <property name="geometry">
+     <rect>
+      <x>50</x>
+      <y>140</y>
+      <width>261</width>
+      <height>121</height>
+     </rect>
+    </property>
+    <property name="title">
+     <string>Sever Connection</string>
+    </property>
+    <widget class="QLabel" name="label_Server">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>30</y>
+       <width>60</width>
+       <height>29</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Address</string>
+     </property>
+    </widget>
+    <widget class="QLineEdit" name="serverAddressEdit">
+     <property name="geometry">
+      <rect>
+       <x>80</x>
+       <y>30</y>
+       <width>171</width>
+       <height>29</height>
+      </rect>
+     </property>
+     <property name="toolTip">
+      <string extracomment="Enter Server Address"/>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="autoSearchButton">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>80</y>
+       <width>91</width>
+       <height>29</height>
+      </rect>
+     </property>
+     <property name="toolTip">
+      <string extracomment="Start an Automatic Search"/>
+     </property>
+     <property name="text">
+      <string>Auto Search</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="manualButton">
+     <property name="geometry">
+      <rect>
+       <x>160</x>
+       <y>80</y>
+       <width>91</width>
+       <height>29</height>
+      </rect>
+     </property>
+     <property name="toolTip">
+      <string extracomment="Connect to the Specified Address"/>
+     </property>
+     <property name="text">
+      <string>Manual</string>
      </property>
     </widget>
    </widget>
@@ -110,7 +190,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>400</width>
+     <width>362</width>
      <height>26</height>
     </rect>
    </property>

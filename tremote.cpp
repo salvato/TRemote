@@ -32,8 +32,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "serverdiscoverer.h"
 
 
-#define CONNECTION_TIME       3000  // Not to be set too low for coping with slow networks
-#define NETWORK_CHECK_TIME    3000
+#define CONNECTION_TIME      3000// Not to be set too low for coping with slow networks
+#define NETWORK_CHECK_TIME   3000
+#define SERVER_PORT         45454
 
 
 
@@ -47,8 +48,13 @@ TRemote::TRemote(QWidget *parent)
 
   ui->setupUi(this);
   ui->powerPercentageEdit->setToolTip("Enter a Value between 0.0 and 100.0");
+  ui->powerPercentageReadEdit->setToolTip("Readback Value");
+  ui->autoSearchButton->setToolTip("Start an Automatic Search");
+  ui->manualButton->setToolTip("Connect to the Specified Address");
+  ui->serverAddressEdit->setToolTip("Enter Server Address");
   ui->applyButton->hide();
   ui->groupBox->setDisabled(true);
+  ui->connectionGroupBox->setDisabled(true);
 
   sNormalStyle = ui->powerPercentageEdit->styleSheet();
   sErrorStyle  = "QLineEdit { background: rgb(255, 0, 0); selection-background-color: rgb(255, 255, 0); }";
@@ -57,6 +63,8 @@ TRemote::TRemote(QWidget *parent)
   restoreGeometry(settings.value("mainWindowGeometry").toByteArray());
   // create docks, toolbars, etc...
   restoreState(settings.value("mainWindowState").toByteArray());
+  QString sString = settings.value(QString("serverAddress"),QString("")).toString();
+  ui->serverAddressEdit->setText(sString);
 
   QString sBaseDir    = QDir::homePath();
   if(!sBaseDir.endsWith(QString("/"))) sBaseDir+= QString("/");
@@ -77,7 +85,8 @@ TRemote::TRemote(QWidget *parent)
   connect(&networkReadyTimer, SIGNAL(timeout()),
           this, SLOT(onTimeToCheckNetwork()));
 
-  startServerDiscovery();
+  ui->statusBar->showMessage(tr("Waiting for a Network Connection"));
+  networkReadyTimer.start(NETWORK_CHECK_TIME);
 }
 
 
@@ -101,7 +110,7 @@ TRemote::PrepareLogFile() {
   logFile = new QFile(logFileName);
   if (!logFile->open(QIODevice::WriteOnly)) {
     QMessageBox::information(this, tr("TRemote"),
-                             tr("Impossibile aprire il file %1: %2.")
+                             tr("Unable to open file %1: %2.")
                              .arg(logFileName).arg(logFile->errorString()));
     delete logFile;
     logFile = NULL;
@@ -135,6 +144,7 @@ TRemote::isConnectedToNetwork() {
              sFunctionName,
              result ? QString("true") : QString("false"));
 #endif
+  ui->connectionGroupBox->setEnabled(result);
   return result;
 }
 
@@ -149,6 +159,7 @@ TRemote::closeEvent(QCloseEvent *event) {
   QSettings settings;
   settings.setValue("mainWindowGeometry", saveGeometry());
   settings.setValue("mainWindowState", saveState());
+  settings.setValue(QString("serverAddress"), ui->serverAddressEdit->text());
 }
 
 
@@ -163,10 +174,10 @@ TRemote::startServerDiscovery() {
     pServerDiscoverer->Discover();
     connectionTime = int(CONNECTION_TIME * (1.0 + (double(qrand())/double(RAND_MAX))));
     connectionTimer.start(connectionTime);
-    ui->statusBar->showMessage(tr("In Attesa della Connessione con il Server"));
+    ui->statusBar->showMessage(tr("Waiting to be connected to the Server"));
   }
   else {// No. Wait until network become ready
-    ui->statusBar->showMessage(tr("In Attesa della Connessione con la Rete"));
+    ui->statusBar->showMessage(tr("Waiting for a Network Connection"));
     networkReadyTimer.start(NETWORK_CHECK_TIME);
 #ifdef LOG_VERBOSE
     logMessage(logFile,
@@ -187,7 +198,7 @@ TRemote::onTimeToCheckNetwork() {
     pServerDiscoverer->Discover();
     connectionTime = int(CONNECTION_TIME * (1.0 + double(qrand())/double(RAND_MAX)));
     connectionTimer.start(connectionTime);
-    ui->statusBar->showMessage(tr("In Attesa della Connessione con il Server"));
+    ui->statusBar->showMessage(tr("Waiting to be connected to the Server"));
   }
 #ifdef LOG_VERBOSE
   else {
@@ -205,7 +216,7 @@ TRemote::onConnectionTimerElapsed() {
   Q_UNUSED(sFunctionName)
 
   if(!isConnectedToNetwork()) {
-    ui->statusBar->showMessage(tr("In Attesa della Connessione con la Rete"));
+    ui->statusBar->showMessage(tr("Waiting for a Network Connection"));
     connectionTimer.stop();
     networkReadyTimer.start(NETWORK_CHECK_TIME);
 #ifdef LOG_VERBOSE
@@ -231,7 +242,7 @@ TRemote::onServerFound(QString serverUrl) {
     Q_UNUSED(sFunctionName)
 
     connectionTimer.stop();
-    ui->statusBar->showMessage(tr("Server trovato all'indirizzo: %1").arg(serverUrl));
+    ui->statusBar->showMessage(tr("Server Found at Address: %1").arg(serverUrl));
 
     // We are ready to connect to the Remote Panel Server
     pPanelServerSocket = new QWebSocket();
@@ -256,7 +267,7 @@ TRemote::onPanelServerConnected() {
           this, SLOT(onTextMessageReceived(QString)));
   connect(pPanelServerSocket, SIGNAL(binaryMessageReceived(QByteArray)),
           this, SLOT(onBinaryMessageReceived(QByteArray)));
-  ui->statusBar->showMessage(tr("Connesso al Panel Server: %1").arg(pPanelServerSocket->peerAddress().toString()));
+  ui->statusBar->showMessage(tr("Connected to Panel Server: %1").arg(pPanelServerSocket->peerAddress().toString()));
   // Ask for the current status
   QString sMessage;
   sMessage = QString("<getStatus>1</getStatus>");
@@ -342,6 +353,12 @@ TRemote::onTextMessageReceived(QString sMessage) {
   if(sToken != sNoData) {
     ui->powerPercentageReadEdit->setText(sToken);
   }
+
+  sToken = XML_Parse(sMessage, "noDAC");
+  if(sToken != sNoData) {
+    ui->powerPercentageReadEdit->setText(sToken);
+  }
+
 }
 
 
@@ -383,5 +400,56 @@ TRemote::on_powerPercentageEdit_returnPressed() {
 
 void
 TRemote::on_applyButton_clicked() {
+  QString sFunctionName = " TRemote::on_applyButton_clicked";
+  Q_UNUSED(sFunctionName)
   on_powerPercentageEdit_returnPressed();
+}
+
+
+void
+TRemote::on_serverAddressEdit_returnPressed() {
+    QString sFunctionName = " TRemote::on_serverAddressEdit_returnPressed";
+    Q_UNUSED(sFunctionName)
+    QString serverUrl = QString("ws://%1:%2").arg(ui->serverAddressEdit->text()).arg(SERVER_PORT);
+
+    connectionTimer.stop();
+    ui->connectionGroupBox->setDisabled(true);
+    ui->statusBar->showMessage(tr("Connection pending to: %1").arg(serverUrl));
+
+    // We are ready to connect to the Remote Panel Server
+    pPanelServerSocket = new QWebSocket();
+    connect(pPanelServerSocket, SIGNAL(connected()),
+            this, SLOT(onPanelServerConnected()));
+    connect(pPanelServerSocket, SIGNAL(error(QAbstractSocket::SocketError)),
+            this, SLOT(onPanelServerSocketError(QAbstractSocket::SocketError)));
+    pPanelServerSocket->open(QUrl(serverUrl));
+}
+
+
+void
+TRemote::on_autoSearchButton_clicked() {
+  QString sFunctionName = " TRemote::on_autoSearchButton_clicked";
+  Q_UNUSED(sFunctionName)
+  startServerDiscovery();
+  ui->connectionGroupBox->setDisabled(true);
+}
+
+
+void
+TRemote::on_manualButton_clicked() {
+    QString sFunctionName = " TRemote::on_manualButton_clicked";
+    Q_UNUSED(sFunctionName)
+    QString serverUrl = QString("ws://%1:%2").arg(ui->serverAddressEdit->text()).arg(SERVER_PORT);
+
+    connectionTimer.stop();
+    ui->connectionGroupBox->setDisabled(true);
+    ui->statusBar->showMessage(tr("Connection pending to: %1").arg(serverUrl));
+
+    // We are ready to connect to the Remote Panel Server
+    pPanelServerSocket = new QWebSocket();
+    connect(pPanelServerSocket, SIGNAL(connected()),
+            this, SLOT(onPanelServerConnected()));
+    connect(pPanelServerSocket, SIGNAL(error(QAbstractSocket::SocketError)),
+            this, SLOT(onPanelServerSocketError(QAbstractSocket::SocketError)));
+    pPanelServerSocket->open(QUrl(serverUrl));
 }
